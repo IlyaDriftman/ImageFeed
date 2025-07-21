@@ -4,7 +4,6 @@ class SingleImageViewController: UIViewController {
     @IBOutlet var imageView: UIImageView!
     
     @IBOutlet var scrollView: UIScrollView!
-    //var imageName: String?
     var image: UIImage? {
         didSet {
             guard isViewLoaded, let image else { return }
