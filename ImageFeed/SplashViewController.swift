@@ -102,15 +102,32 @@ final class SplashViewController: UIViewController {
 
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
-        print("Делегат didAuthenticate сработал")
-        vc.dismiss(animated: true) { [weak self] in
-            
-            guard let self = self else { return }
-            if let token = self.storage.token {
-                self.fetchProfile(token: token) // Загружаем профиль после авторизации
-            } else {
-                print("Токен не найден после авторизации")
+        print("✅ Авторизация успешна")
+        guard let token = storage.token else {
+            print("❌ Токен не получен")
+            return
+        }
+
+        UIBlockingProgressHUD.show()
+        
+        profileService.fetchProfile(token) { [weak self] result in
+            DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
+                vc.dismiss(animated: false) // Сначала закрываем Auth
+            }
+
+            switch result {
+            case let .success(profile):
+                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { _ in }
+                DispatchQueue.main.async {
+                    self?.switchToTabBarController() // Плавно переключаемся
+                }
+
+            case let .failure(error):
+                print("❌ Ошибка профиля: \(error)")
+                // Можно показать UIAlert
             }
         }
     }
+
 }
