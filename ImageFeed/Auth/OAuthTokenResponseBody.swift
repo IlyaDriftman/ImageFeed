@@ -1,7 +1,9 @@
 struct OAuthTokenResponseBody: Decodable {
     let accessToken: String
-    
-    private enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-    }
+    let tokenType: String
+    let refreshToken: String
+    let scope: String
+    let createdAt: Int
+    let userId: Int
+    let username: String
 }
