@@ -32,8 +32,7 @@ final class SplashViewController: UIViewController {
         
         if let token = storage.token {
             print("Токен найден, загружаем профиль")
-          //  switchToTabBarController()
-            fetchProfile(token: token)
+            fetchProfileAndSwitch(token: token)
         } else {
             print("Токен не найден, показываем экран авторизации")
             showAuthScreen()
@@ -75,59 +74,52 @@ final class SplashViewController: UIViewController {
         window.makeKeyAndVisible()
     }
 
-    private func fetchProfile(token: String) {
-        print("Запуск fetchProfile")
+    private func fetchProfileAndSwitch(token: String) {
         UIBlockingProgressHUD.show()
 
         profileService.fetchProfile(token) { [weak self] result in
-            UIBlockingProgressHUD.dismiss()
-            print("Result пришёл: \(result)")
+            DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
+                guard let self = self else { return }
 
-            guard let self = self else { return }
+                switch result {
+                case let .success(profile):
+                    print("Профиль получен: \(profile.username)")
+                    ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { imageResult in
+                        print("Аватар обновлён: \(imageResult)")
+                    }
+                    self.setTabBarAsRoot()
 
-            switch result {
-            case let .success(profile):
-                print("Профиль получен: \(profile.username)")
-                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { imageResult in
-                    print("Аватар обновлён: \(imageResult)")
+                case let .failure(error):
+                    print("Ошибка профиля: \(error)")
                 }
-                self.switchToTabBarController()
-
-            case let .failure(error):
-                print("Ошибка при получении профиля: \(error)")
             }
         }
+    }
+    private func setTabBarAsRoot() {
+        guard let window = UIApplication.shared.windows.first else {
+            assertionFailure("Window не найден")
+            return
+        }
+
+        let tabBarController = UIStoryboard(name: "Main", bundle: .main)
+            .instantiateViewController(withIdentifier: "TabBarViewController")
+
+        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
+            window.rootViewController = tabBarController
+        })
     }
 }
 
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
-        print("✅ Авторизация успешна")
+        print("Авторизация успешна")
+        
         guard let token = storage.token else {
-            print("❌ Токен не получен")
+            print("Токен отсутствует после авторизации")
             return
         }
 
-        UIBlockingProgressHUD.show()
-        
-        profileService.fetchProfile(token) { [weak self] result in
-            DispatchQueue.main.async {
-                UIBlockingProgressHUD.dismiss()
-                vc.dismiss(animated: false) // Сначала закрываем Auth
-            }
-
-            switch result {
-            case let .success(profile):
-                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { _ in }
-                DispatchQueue.main.async {
-                    self?.switchToTabBarController() // Плавно переключаемся
-                }
-
-            case let .failure(error):
-                print("❌ Ошибка профиля: \(error)")
-                // Можно показать UIAlert
-            }
-        }
+        fetchProfileAndSwitch(token: token)
     }
-
 }
