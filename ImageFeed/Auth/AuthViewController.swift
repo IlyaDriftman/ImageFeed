@@ -79,11 +79,11 @@ extension AuthViewController {
 extension AuthViewController {
     func showAuthErrorAlert() {
         let alertController = UIAlertController(
-            title: "Что-то пошло не так",
+            title: "Что-то пошло не так(",
             message: "Не удалось войти в систему",
             preferredStyle: .alert
         )
-        let okAction = UIAlertAction(title: "Ок", style: .default, handler: nil)
+        let okAction = UIAlertAction(title: "ОК", style: .default, handler: nil)
         alertController.addAction(okAction)
         present(alertController, animated: true, completion: nil)
     }

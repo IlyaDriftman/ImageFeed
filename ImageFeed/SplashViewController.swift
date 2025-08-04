@@ -16,6 +16,7 @@ final class SplashViewController: UIViewController {
             super.viewDidLoad()
             view.backgroundColor = .black // Или любой другой фон
             layoutLogo()
+        
         }
 
         private func layoutLogo() {
