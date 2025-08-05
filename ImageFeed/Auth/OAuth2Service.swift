@@ -2,41 +2,60 @@ import Foundation
 
 final class OAuth2Service {
     static let shared = OAuth2Service()
-    
     private init() { }
-    
+    private var currentTask: URLSessionTask?
+    private var lastCode: String?
+
     // MARK: - Public API
-    
     func fetchOAuthToken(
         code: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
+        if currentTask != nil, lastCode == code {
+            print("[OAuth2Service.fetchOAuthToken]: RequestAlreadyInProgress - code: \(code)")
+            completion(.failure(OAuth2Error.requestAlreadyInProgress))
+            return
+        }
+
+        if currentTask != nil, lastCode != code {
+            print("[OAuth2Service.fetchOAuthToken]: Cancelling previous request - new code: \(code)")
+            currentTask?.cancel()
+        }
+        
+        lastCode = code
+
         guard let request = makeOAuthTokenRequest(code: code) else {
+            print("[OAuth2Service.makeOAuthTokenRequest]: InvalidRequest - could not create URLRequest")
             completion(.failure(OAuth2Error.invalidRequest))
             return
         }
-        
-        URLSession.shared.objectTask(for: request) { (result: Result<(OAuthTokenResponseBody, HTTPURLResponse), Error>) in
+
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
+            guard let self = self else { return }
+            defer { self.currentTask = nil; self.lastCode = nil }
+
             switch result {
-            case .success((let body, let response)):
-                if (200..<300).contains(response.statusCode) {
-                    print("Status code: \(response.statusCode)")
-                    print("Access token: \(body.accessToken)")
-                    let token = body.accessToken
-                    OAuth2TokenStorage.shared.token = token
-                    completion(.success(token))
-                } else {
-                    print("Ошибка HTTP: \(response.statusCode)")
-                    completion(.failure(OAuth2Error.invalidResponse))
-                }
+            case .success(let decoded):
+                print("[OAuth2Service.fetchOAuthToken]: Token получен")
+                OAuth2TokenStorage.shared.token = decoded.accessToken
+                completion(.success(decoded.accessToken))
+
             case .failure(let error):
-                print("Ошибка запроса токена: \(error)")
+                if let urlError = error as? URLError, urlError.code == .cancelled {
+                    print("[OAuth2Service.fetchOAuthToken]: Request cancelled manually, code: \(code)")
+                    return
+                }
+
+                print("[OAuth2Service.fetchOAuthToken]: \(type(of: error)) - \(error.localizedDescription), code: \(code)")
                 completion(.failure(error))
             }
         }
+
+        currentTask = task
+        task.resume()
     }
-    
 }
+
 private extension OAuth2Service {
     private func makeOAuthTokenRequest(code: String) -> URLRequest? {
         guard let url = URL(string: "https://unsplash.com/oauth/token") else {
@@ -65,45 +84,4 @@ private extension OAuth2Service {
     }
 
      
-}
-
-extension URLSession {
-    func objectTask<T: Decodable>(
-        for request: URLRequest,
-        completion: @escaping (Result<(T, HTTPURLResponse), Error>) -> Void
-    ) {
-        let task = dataTask(with: request) { data, response, error in
-            if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-                return
-            }
-
-            guard
-                let data = data,
-                let response = response as? HTTPURLResponse
-            else {
-                DispatchQueue.main.async {
-                    completion(.failure(OAuth2Error.invalidResponse))
-                }
-                return
-            }
-
-            do {
-                if let rawString = String(data: data, encoding: .utf8) {
-                    print("📦 Raw response:\n\(rawString)")
-                }
-                let decodedObject = try JSONDecoder().decode(T.self, from: data)
-                DispatchQueue.main.async {
-                    completion(.success((decodedObject, response)))
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-            }
-        }
-        task.resume()
-    }
 }
