@@ -74,7 +74,7 @@ final class ProfileViewController: UIViewController {
 
                     // В случае ошибки
                 case .failure(let error):
-                    print(error)
+                    print("Ошибка загрузки аватара: \(error.localizedDescription)")
                 }
             }
     }

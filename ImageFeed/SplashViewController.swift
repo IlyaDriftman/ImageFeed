@@ -7,7 +7,7 @@ final class SplashViewController: UIViewController {
     
     private let logoImageView: UIImageView = {
             let imageView = UIImageView()
-            imageView.image = UIImage(named: "splash_screen_logo")
+            imageView.image = UIImage(named: "SplashIcon")
             imageView.translatesAutoresizingMaskIntoConstraints = false
             return imageView
         }()
@@ -60,20 +60,7 @@ final class SplashViewController: UIViewController {
         .lightContent
     }
 
-    private func switchToTabBarController() {
-        print("Переключаемся на TabBar")
-        guard let window = UIApplication.shared.windows.first else {
-            assertionFailure("Invalid window configuration")
-            return
-        }
-
-        let tabBarController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "TabBarViewController")
-
-        // Сбросим всю иерархию viewController'ов
-        window.rootViewController = tabBarController
-        window.makeKeyAndVisible()
-    }
+    // Удаляем дублирующий метод switchToTabBarController, используем setTabBarAsRoot
 
     private func fetchProfileAndSwitch(token: String) {
         UIBlockingProgressHUD.show()
