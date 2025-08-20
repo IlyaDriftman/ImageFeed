@@ -33,19 +33,25 @@ final class ImagesListService {
                 }
                 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print(" [ImagesListService] HTTP статус: \(httpResponse.statusCode)")
+                    let status = httpResponse.statusCode
+                    print(" [ImagesListService] HTTP статус: \(status)")
+
+                    guard 200..<300 ~= status else {
+                        self.logError(method: "changeLike", errorType: "HTTPStatusCode(\(status))", params: "photoId=\(photoId) isLike=\(isLike)")
+                        DispatchQueue.main.async {
+                            completion(.failure(NetworkError.httpStatusCode(status)))
+                        }
+                        return
+                    }
                 }
-                
-                print("[ImagesListService] Запрос успешен")
+
+                print("[ImagesListService.changeLike] success 2xx")
                 DispatchQueue.main.async {
                     if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
-                        print(" [ImagesListService] Найден индекс: \(index)")
-
                         var updatedPhotos = self.photos
                         updatedPhotos[index].isLiked = isLike
                         self.photos = updatedPhotos
-                        
-                        print(" [ImagesListService] Модель обновлена, отправляем нотификацию")
+
                         NotificationCenter.default.post(
                             name: ImagesListService.didChangeNotification,
                             object: self,

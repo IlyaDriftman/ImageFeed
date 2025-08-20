@@ -45,34 +45,21 @@ final class ProfileViewController: UIViewController {
             .withTintColor(.lightGray, renderingMode: .alwaysOriginal)
             .withConfiguration(UIImage.SymbolConfiguration(pointSize: 70, weight: .regular, scale: .large))
 
-        let processor = RoundCornerImageProcessor(cornerRadius: 20) // Радиус для круга
+        let processor = RoundCornerImageProcessor(cornerRadius: 20) 
         imageView.kf.indicatorType = .activity
         imageView.kf.setImage(
             with: imageUrl,
             placeholder: placeholderImage,
             options: [
                 .processor(processor),
-                .scaleFactor(UIScreen.main.scale), // Учитываем масштаб экрана
-                .cacheOriginalImage, // Кэшируем оригинал
-                .forceRefresh // Игнорируем кэш, чтобы обновить
+                .scaleFactor(UIScreen.main.scale),
+                .cacheOriginalImage,
+                .forceRefresh
             ]) { result in
-
+               
                 switch result {
-                    // Успешная загрузка
                 case .success(let value):
-                    // Картинка
-                    print(value.image)
-
-                    // Откуда картинка загружена:
-                    // - .none — из сети.
-                    // - .memory — из кэша оперативной памяти.
-                    // - .disk — из дискового кэша.
-                    print(value.cacheType)
-
-                    // Информация об источнике.
-                    print(value.source)
-
-                    // В случае ошибки
+                    print("загружно")
                 case .failure(let error):
                     print(error)
                 }
@@ -147,18 +134,15 @@ final class ProfileViewController: UIViewController {
 
     @objc
     private func didTapButton() {
-        // Показываем подтверждение выхода
         let alert = UIAlertController(
-            title: "Выход",
-            message: "Вы уверены, что хотите выйти?",
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Выйти", style: .destructive) { _ in
-            // 1. Очищаем данные пользователя (токен, куки, кэш и т.д.)
+       
+        alert.addAction(UIAlertAction(title: "Да", style: .default) { _ in
             ProfileLogoutService.shared.logout()
-
-            // 2. Переключаемся на сплэш-экран
+            
             guard let window = UIApplication.shared.windows.first else {
                 assertionFailure("Окно не найдено")
                 return
@@ -173,7 +157,7 @@ final class ProfileViewController: UIViewController {
                               animations: {},
                               completion: nil)
         })
-
+        alert.addAction(UIAlertAction(title: "Нет", style: .default))
         present(alert, animated: true)
     }
     

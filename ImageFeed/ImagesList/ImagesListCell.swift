@@ -15,6 +15,7 @@ final class ImagesListCell: UITableViewCell {
     
     func configure(imageURL: String, date: String, isLiked: Bool) {
         dateLabel.text = date
+        
         let likeImage = isLiked
             ? UIImage(named: "like_on")
             : UIImage(named: "like_off")
