@@ -74,7 +74,7 @@ final class ProfileViewController: UIViewController {
 
                     // В случае ошибки
                 case .failure(let error):
-                    print("Ошибка загрузки аватара: \(error.localizedDescription)")
+                    print(error)
                 }
             }
     }
@@ -147,25 +147,34 @@ final class ProfileViewController: UIViewController {
 
     @objc
     private func didTapButton() {
-        // Очистка токена
-        OAuth2TokenStorage.shared.token = nil
+        // Показываем подтверждение выхода
+        let alert = UIAlertController(
+            title: "Выход",
+            message: "Вы уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Выйти", style: .destructive) { _ in
+            // 1. Очищаем данные пользователя (токен, куки, кэш и т.д.)
+            ProfileLogoutService.shared.logout()
 
-        // Найдём окно
-        guard let window = UIApplication.shared.windows.first else {
-            assertionFailure("Окно не найдено")
-            return
-        }
+            // 2. Переключаемся на сплэш-экран
+            guard let window = UIApplication.shared.windows.first else {
+                assertionFailure("Окно не найдено")
+                return
+            }
 
-        // Создаём сплэш
-        let splashVC = SplashViewController()
-        window.rootViewController = splashVC
+            let splashVC = SplashViewController()
+            window.rootViewController = splashVC
 
-        // Плавный переход (опционально)
-        UIView.transition(with: window,
-                          duration: 0.3,
-                          options: .transitionCrossDissolve,
-                          animations: {},
-                          completion: nil)
+            UIView.transition(with: window,
+                              duration: 0.3,
+                              options: .transitionCrossDissolve,
+                              animations: {},
+                              completion: nil)
+        })
+
+        present(alert, animated: true)
     }
     
 }

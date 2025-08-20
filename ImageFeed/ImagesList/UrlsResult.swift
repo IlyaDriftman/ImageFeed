@@ -1,7 +1,8 @@
-//
-//  UrlsResult.swift
-//  ImageFeed
-//
-//  Created by Илья on 09.08.2025.
-//
 
+struct UrlsResult: Codable {
+    let raw: String
+    let full: String
+    let regular: String
+    let small: String
+    let thumb: String
+}

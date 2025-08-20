@@ -1,3 +1,6 @@
+import Foundation
+import CoreGraphics
+
 struct Photo {
     let id: String
     let size: CGSize
@@ -5,5 +8,5 @@ struct Photo {
     let welcomeDescription: String?
     let thumbImageURL: String
     let largeImageURL: String
-    let isLiked: Bool
+    var isLiked: Bool
 }
