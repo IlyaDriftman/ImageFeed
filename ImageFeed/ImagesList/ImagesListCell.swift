@@ -17,8 +17,8 @@ final class ImagesListCell: UITableViewCell {
         dateLabel.text = date
         
         let likeImage = isLiked
-            ? UIImage(named: "like_on")
-            : UIImage(named: "like_off")
+        ? UIImage(named: "like_on")
+        : UIImage(named: "like_off")
         likeButton.setImage(likeImage, for: .normal)
         cellImage.contentMode = .center
         cellImage.clipsToBounds = true
@@ -47,13 +47,13 @@ final class ImagesListCell: UITableViewCell {
     }
     
     func setIsLiked(_ isLiked: Bool) {
-            let image = isLiked
-                ? UIImage(named: "like_on")
-                : UIImage(named: "like_off")
-            likeButton.setImage(image, for: .normal)
-        }
+        let image = isLiked
+        ? UIImage(named: "like_on")
+        : UIImage(named: "like_off")
+        likeButton.setImage(image, for: .normal)
+    }
     
-    @IBAction func likeButtonClicked(_ sender: Any) {
+    @IBAction private func likeButtonClicked(_ sender: Any) {
         delegate?.imageListCellDidTapLike(self)
     }
 }

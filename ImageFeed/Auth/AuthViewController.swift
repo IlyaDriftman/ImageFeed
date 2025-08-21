@@ -31,8 +31,8 @@ final class AuthViewController: UIViewController {
     }
     
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(named: "nav_back_button_white")
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "nav_back_button_white")
+        navigationController?.navigationBar.backIndicatorImage = UIImage(resource: .navBackButtonWhite)
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(resource: .navBackButtonWhite)
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem?.tintColor = UIColor(named: "ypBlack")
     }
@@ -40,19 +40,14 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-
-        // Скрываем WebViewViewController
         vc.dismiss(animated: true)
-
-        // Показываем индикатор загрузки
         UIBlockingProgressHUD.show()
-
+        
         fetchOAuthToken(code) { [weak self] result in
-            // Скрываем индикатор загрузки
             UIBlockingProgressHUD.dismiss()
-
+            
             guard let self else { return }
-
+            
             switch result {
             case .success:
                 self.delegate?.didAuthenticate(self)
@@ -62,7 +57,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
             }
         }
     }
-
+    
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         vc.dismiss(animated: true)
     }

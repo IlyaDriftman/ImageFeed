@@ -6,27 +6,27 @@ final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     
     private let logoImageView: UIImageView = {
-            let imageView = UIImageView()
-            imageView.image = UIImage(named: "SplashIcon")
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            return imageView
-        }()
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "SplashIcon")
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
     
     override func viewDidLoad() {
-            super.viewDidLoad()
-            view.backgroundColor = .black // Или любой другой фон
-            layoutLogo()
+        super.viewDidLoad()
+        view.backgroundColor = .black // Или любой другой фон
+        layoutLogo()
         
-        }
-
-        private func layoutLogo() {
-            view.addSubview(logoImageView)
-
-            NSLayoutConstraint.activate([
-                logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                logoImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-            ])
-        }
+    }
+    
+    private func layoutLogo() {
+        view.addSubview(logoImageView)
+        
+        NSLayoutConstraint.activate([
+            logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            logoImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -55,21 +55,21 @@ final class SplashViewController: UIViewController {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
     }
-
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
-
+    
     // Удаляем дублирующий метод switchToTabBarController, используем setTabBarAsRoot
-
+    
     private func fetchProfileAndSwitch(token: String) {
         UIBlockingProgressHUD.show()
-
+        
         profileService.fetchProfile(token) { [weak self] result in
             DispatchQueue.main.async {
                 UIBlockingProgressHUD.dismiss()
                 guard let self = self else { return }
-
+                
                 switch result {
                 case let .success(profile):
                     print("Профиль получен: \(profile.username)")
@@ -77,7 +77,7 @@ final class SplashViewController: UIViewController {
                         print("Аватар обновлён: \(imageResult)")
                     }
                     self.setTabBarAsRoot()
-
+                    
                 case let .failure(error):
                     print("Ошибка профиля: \(error)")
                 }
@@ -89,10 +89,10 @@ final class SplashViewController: UIViewController {
             assertionFailure("Window не найден")
             return
         }
-
+        
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarViewController")
-
+        
         UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
             window.rootViewController = tabBarController
         })
@@ -107,7 +107,7 @@ extension SplashViewController: AuthViewControllerDelegate {
             print("Токен отсутствует после авторизации")
             return
         }
-
+        
         fetchProfileAndSwitch(token: token)
     }
 }

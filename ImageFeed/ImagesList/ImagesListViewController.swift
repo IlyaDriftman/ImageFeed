@@ -26,7 +26,7 @@ final class ImagesListViewController: UIViewController {
             object: ImagesListService.shared,
             queue: .main) { [weak self] _ in
                 self?.updateTableViewAnimated()
-        }
+            }
         
         ImagesListService.shared.fetchPhotosNextPage()
     }
@@ -36,10 +36,10 @@ final class ImagesListViewController: UIViewController {
     }
     
     deinit {
-            if let token = imagesObserver {
-                NotificationCenter.default.removeObserver(token)
-            }
+        if let token = imagesObserver {
+            NotificationCenter.default.removeObserver(token)
         }
+    }
     
     private func updateTableViewAnimated() {
         displayedPhotosCount = photos.count
@@ -50,12 +50,12 @@ final class ImagesListViewController: UIViewController {
 
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return photos.count
+        photos.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ImagesListCell.reuseIdentifier, for: indexPath)
-       
+        
         guard let imageListCell = cell as? ImagesListCell else {
             return UITableViewCell()
         }
@@ -66,7 +66,7 @@ extension ImagesListViewController: UITableViewDataSource {
             date: dateFormatter.string(from: photos[indexPath.row].createdAt ?? Date()),
             isLiked: photos[indexPath.row].isLiked
         )
-
+        
         return imageListCell
     }
     
@@ -82,7 +82,7 @@ extension ImagesListViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: false)
         performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
     }
-
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let photo = photos[indexPath.row]
         let insets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
@@ -117,15 +117,14 @@ extension ImagesListViewController: ImagesListCellDelegate {
         let newLikeValue = !photo.isLiked
         UIBlockingProgressHUD.show()
         ImagesListService.shared.changeLike(photoId: photo.id, isLike: newLikeValue) { [weak self] result in
-            guard let self = self else { return }
             
             DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
+                guard let self = self else { return }
                 switch result {
                 case .success:
                     cell.setIsLiked(self.photos[indexPath.row].isLiked)
-                    UIBlockingProgressHUD.dismiss()
                 case .failure(let error):
-                    UIBlockingProgressHUD.dismiss()
                     self.showLikeErrorAlert(error: error)
                 }
             }

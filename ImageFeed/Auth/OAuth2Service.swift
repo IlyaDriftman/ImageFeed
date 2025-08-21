@@ -5,7 +5,7 @@ final class OAuth2Service {
     private init() { }
     private var currentTask: URLSessionTask?
     private var lastCode: String?
-
+    
     // MARK: - Public API
     func fetchOAuthToken(
         code: String,
@@ -16,41 +16,41 @@ final class OAuth2Service {
             completion(.failure(OAuth2Error.requestAlreadyInProgress))
             return
         }
-
+        
         if currentTask != nil, lastCode != code {
             print("[OAuth2Service.fetchOAuthToken]: Cancelling previous request - new code: \(code)")
             currentTask?.cancel()
         }
         
         lastCode = code
-
+        
         guard let request = makeOAuthTokenRequest(code: code) else {
             print("[OAuth2Service.makeOAuthTokenRequest]: InvalidRequest - could not create URLRequest")
             completion(.failure(OAuth2Error.invalidRequest))
             return
         }
-
+        
         let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
             guard let self = self else { return }
             defer { self.currentTask = nil; self.lastCode = nil }
-
+            
             switch result {
             case .success(let decoded):
                 print("[OAuth2Service.fetchOAuthToken]: Token получен")
                 OAuth2TokenStorage.shared.token = decoded.accessToken
                 completion(.success(decoded.accessToken))
-
+                
             case .failure(let error):
                 if let urlError = error as? URLError, urlError.code == .cancelled {
                     print("[OAuth2Service.fetchOAuthToken]: Request cancelled manually, code: \(code)")
                     return
                 }
-
+                
                 print("[OAuth2Service.fetchOAuthToken]: \(type(of: error)) - \(error.localizedDescription), code: \(code)")
                 completion(.failure(error))
             }
         }
-
+        
         currentTask = task
         task.resume()
     }
@@ -82,6 +82,6 @@ private extension OAuth2Service {
         
         return request
     }
-
-     
+    
+    
 }
