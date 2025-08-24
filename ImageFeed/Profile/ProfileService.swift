@@ -8,7 +8,7 @@ final class ProfileService {
     private let urlSession = URLSession.shared
     
     private(set) var profile: Profile?
-
+    
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
         task?.cancel()
         
@@ -17,7 +17,7 @@ final class ProfileService {
             completion(.failure(URLError(.badURL)))
             return
         }
-
+        
         let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
             print("[ProfileService.fetchProfile]: Response received")
             switch result {
@@ -32,30 +32,32 @@ final class ProfileService {
                     loginName: "@\(result.username)",
                     bio: result.bio
                 )
-               
+                
                 self?.profile = profile
                 completion(.success(profile))
-               
+                
             case .failure(let error):
                 print("[ProfileService.fetchProfile]: \(type(of: error)) - \(error.localizedDescription), token: \(token)")
                 completion(.failure(error))
             }
             self?.task = nil
         }
-
+        
         self.task = task
         task.resume()
     }
-
+    
     private func makeProfileRequest(token: String) -> URLRequest? {
-        guard let url = URL(string: "https://api.unsplash.com/me") else {
-            return nil
-        }
-
+        let url = Constants.defaultBaseURL.appendingPathComponent("me")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return request
+    }
+    
+    func clearProfile() {
+        profile = nil
+        print("[ProfileService] Профиль очищен")
     }
 }
 
