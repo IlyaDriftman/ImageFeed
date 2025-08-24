@@ -17,8 +17,8 @@ final class ImagesListCell: UITableViewCell {
         dateLabel.text = date
         
         let likeImage = isLiked
-        ? UIImage(named: "like_on")
-        : UIImage(named: "like_off")
+        ? UIImage(resource: .likeOn)
+        : UIImage(resource: .likeOff)
         likeButton.setImage(likeImage, for: .normal)
         cellImage.contentMode = .center
         cellImage.clipsToBounds = true
