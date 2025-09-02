@@ -9,8 +9,22 @@ final class ProfileImageService {
     
     private(set) var avatarURL: String?
     private var task: URLSessionTask?
+    private var lastFetchUsername: String?
+    private var lastFetchTime: Date?
+    private let cacheTimeout: TimeInterval = 300 // 5 минут кэширования
     
     func fetchProfileImageURL(username: String, completion: @escaping (Result<String, Error>) -> Void) {
+        // Проверяем кэш
+        if let avatarURL = avatarURL,
+           let lastUsername = lastFetchUsername,
+           let lastFetch = lastFetchTime,
+           lastUsername == username,
+           Date().timeIntervalSince(lastFetch) < cacheTimeout {
+            print("[ProfileImageService.fetchProfileImageURL]: Возвращаем аватар из кэша для \(username)")
+            completion(.success(avatarURL))
+            return
+        }
+        
         task?.cancel()
         
         print("[ProfileImageService.fetchProfileImageURL]: Запрос для username = \(username)")
@@ -39,6 +53,8 @@ final class ProfileImageService {
             case .success(let result):
                 let url = result.profileImage.medium
                 self.avatarURL = url
+                self.lastFetchUsername = username
+                self.lastFetchTime = Date()
                 print("[ProfileImageService.fetchProfileImageURL]: Успешно получили URL: \(url) для username: \(username)")
                 completion(.success(url))
                 
@@ -75,6 +91,10 @@ final class ProfileImageService {
     
     func clearAvatar() {
         avatarURL = nil
+        lastFetchUsername = nil
+        lastFetchTime = nil
         print("[ProfileImageService] Аватар очищен")
     }
 }
+
+extension ProfileImageService: ProfileImageServiceProtocol {}

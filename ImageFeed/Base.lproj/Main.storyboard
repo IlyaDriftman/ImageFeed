@@ -152,9 +152,10 @@
                                     <constraint firstAttribute="height" constant="60" id="wzJ-iP-dtJ"/>
                                 </constraints>
                             </imageView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MJF-aH-0xM">
+                            <button opaque="NO" contentMode="scaleToFill" restorationIdentifier="Authenticate" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MJF-aH-0xM">
                                 <rect key="frame" x="29.666666666666657" y="808" width="343" height="48"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <accessibility key="accessibilityConfiguration" identifier="Authenticate"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="48" id="LjM-GU-k0X"/>
                                     <constraint firstAttribute="width" constant="343" id="h83-7e-FV2"/>
@@ -198,7 +199,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZHP-tk-WCA">
+                            <wkWebView contentMode="scaleToFill" accessibilityIdentifier="UnsplashWebView" translatesAutoresizingMaskIntoConstraints="NO" id="ZHP-tk-WCA">
                                 <rect key="frame" x="0.0" y="168" width="402" height="672"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <wkWebViewConfiguration key="configuration">

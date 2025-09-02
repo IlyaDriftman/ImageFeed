@@ -61,3 +61,4 @@ final class ProfileService {
     }
 }
 
+extension ProfileService: ProfileServiceProtocol {}

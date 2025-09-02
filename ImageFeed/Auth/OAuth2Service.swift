@@ -46,8 +46,15 @@ final class OAuth2Service {
                     return
                 }
                 
-                print("[OAuth2Service.fetchOAuthToken]: \(type(of: error)) - \(error.localizedDescription), code: \(code)")
-                completion(.failure(error))
+                // Обработка HTTP ошибок
+                if case NetworkError.httpStatusCode(let statusCode) = error {
+                    let oauthError = self.mapHTTPStatusCodeToOAuthError(statusCode)
+                    print("[OAuth2Service.fetchOAuthToken]: HTTP ошибка \(statusCode) -> \(oauthError.localizedDescription), code: \(code)")
+                    completion(.failure(oauthError))
+                } else {
+                    print("[OAuth2Service.fetchOAuthToken]: \(type(of: error)) - \(error.localizedDescription), code: \(code)")
+                    completion(.failure(OAuth2Error.networkError))
+                }
             }
         }
         
@@ -83,5 +90,14 @@ private extension OAuth2Service {
         return request
     }
     
-    
+    private func mapHTTPStatusCodeToOAuthError(_ statusCode: Int) -> OAuth2Error {
+        switch statusCode {
+        case 400, 401, 403:
+            return .invalidRequest
+        case 500...599:
+            return .serverError
+        default:
+            return .serverError
+        }
+    }
 }

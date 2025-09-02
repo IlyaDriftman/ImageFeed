@@ -14,7 +14,7 @@ final class SplashViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black // Или любой другой фон
+        view.backgroundColor = .black
         layoutLogo()
         
     }
@@ -59,8 +59,6 @@ final class SplashViewController: UIViewController {
     override var preferredStatusBarStyle: UIStatusBarStyle {
         .lightContent
     }
-    
-    // Удаляем дублирующий метод switchToTabBarController, используем setTabBarAsRoot
     
     private func fetchProfileAndSwitch(token: String) {
         UIBlockingProgressHUD.show()

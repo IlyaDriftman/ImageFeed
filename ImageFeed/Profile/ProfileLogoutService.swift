@@ -34,3 +34,4 @@ extension Notification.Name {
     static let userDidLogout = Notification.Name("UserDidLogout")
 }
 
+extension ProfileLogoutService: ProfileLogoutServiceProtocol {}

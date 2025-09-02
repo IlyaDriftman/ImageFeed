@@ -6,5 +6,5 @@ struct Photo {
     let createdAt: Date?
     let thumbImageURL: String
     let largeImageURL: String
-    let isLiked: Bool
+    var isLiked: Bool
 }
