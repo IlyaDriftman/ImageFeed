@@ -1,8 +1,6 @@
 import Foundation
 import UIKit
 
-enum ImagesListServiceError: Error { case photoNotFound }
-
 final class ImagesListService {
     // MARK: - Public API
     static let shared = ImagesListService()
@@ -42,36 +40,20 @@ final class ImagesListService {
 
         print(" [ImagesListService] Запрос создан, отправляем...")
 
-        let task = URLSession.shared.data(for: request) { [weak self] result in
-            guard let self = self else { return }
-            print("[ImagesListService] Получен ответ от сервера")
+        let task = URLSession.shared.data(for: request) { result in
+            print(" [ImagesListService] Получен ответ от сервера")
 
             switch result {
             case .success:
                 print("[ImagesListService] Запрос успешен")
-
-                DispatchQueue.main.async { [weak self] in
-                    guard let self = self else { return }
-
-                    guard
-                        let index = self.photos.firstIndex(where: {
-                            $0.id == photoId
-                        })
-                    else {
-                        print(
-                            "[ImagesListService] Не найден photoId=\(photoId)"
-                        )
-                        completion(
-                            .failure(ImagesListServiceError.photoNotFound)
-                        )
-                        return
-                    }
-
-                    // Обновляем только если реально меняется флаг
-                    if self.photos[index].isLiked != isLike {
-                        var updated = self.photos
-                        updated[index].isLiked = isLike
-                        self.photos = updated
+                DispatchQueue.main.async {
+                    if let index = self.photos.firstIndex(where: {
+                        $0.id == photoId
+                    }) {
+                        print("[ImagesListService] Найден индекс: \(index)")
+                        var updatedPhotos = self.photos
+                        updatedPhotos[index].isLiked = isLike
+                        self.photos = updatedPhotos
 
                         print(
                             "[ImagesListService] Модель обновлена, отправляем нотификацию"
@@ -81,33 +63,25 @@ final class ImagesListService {
                             object: self,
                             userInfo: ["photos": self.photos]
                         )
-                    } else {
-                        print(
-                            "[ImagesListService] Значение isLiked уже \(isLike) — пропускаю пост"
-                        )
                     }
-
                     completion(.success(()))
                 }
-
+                
             case .failure(let error):
                 print("[ImagesListService] Ошибка: \(error)")
-
-                // Пример маппинга HTTP-статусов — оставляю твою логику
-                let mappedError: Error
-                if case NetworkError.httpStatusCode(let status) = error {
-                    let msg = self.mapHTTPStatusCodeToLikeError(status)
-                    print("[ImagesListService] HTTP \(status) → \(msg)")
-                    mappedError = NetworkError.httpStatusCode(status)
+                
+                // Обработка HTTP ошибок
+                if case NetworkError.httpStatusCode(let statusCode) = error {
+                    let errorMessage = self.mapHTTPStatusCodeToLikeError(statusCode)
+                    print("[ImagesListService] HTTP ошибка \(statusCode) -> \(errorMessage)")
+                    DispatchQueue.main.async {
+                        completion(.failure(NetworkError.httpStatusCode(statusCode)))
+                    }
                 } else {
-                    print(
-                        "[ImagesListService] Сетевая ошибка: \(error.localizedDescription)"
-                    )
-                    mappedError = error
-                }
-
-                DispatchQueue.main.async {
-                    completion(.failure(mappedError))
+                    print("[ImagesListService] Сетевая ошибка: \(error.localizedDescription)")
+                    DispatchQueue.main.async {
+                        completion(.failure(error))
+                    }
                 }
             }
         }
@@ -188,9 +162,7 @@ final class ImagesListService {
             !self.photos.contains(where: { $0.id == newPhoto.id })
         }
 
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-
+        DispatchQueue.main.async {
             self.photos.append(contentsOf: unique)
             self.lastLoadedPage = nextPage
             NotificationCenter.default.post(
@@ -259,7 +231,7 @@ final class ImagesListService {
         lastLoadedPage = nil
         print("[ImagesListService] Список изображений очищен")
     }
-
+    
     // MARK: - Private Helpers
     private func mapHTTPStatusCodeToLikeError(_ statusCode: Int) -> String {
         switch statusCode {
