@@ -55,13 +55,14 @@ class Image_FeedUITests: XCTestCase {
         )
 
         cellToLike.buttons["like button off"].tap()
+        sleep(2)
         cellToLike.buttons["like button on"].tap()
 
         sleep(2)
 
         cellToLike.tap()
 
-        sleep(2)
+        sleep(4)
 
         let image = app.scrollViews.images.element(boundBy: 0)
         // Zoom in

@@ -40,24 +40,23 @@ final class ImagesListService {
 
         print(" [ImagesListService] Запрос создан, отправляем...")
 
-        let task = URLSession.shared.data(for: request) { result in
+        let task = URLSession.shared.data(for: request) { [weak self] result in
+            guard let self = self else { return }
             print(" [ImagesListService] Получен ответ от сервера")
 
             switch result {
             case .success:
                 print("[ImagesListService] Запрос успешен")
-                DispatchQueue.main.async {
-                    if let index = self.photos.firstIndex(where: {
-                        $0.id == photoId
-                    }) {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+
+                    if let index = self.photos.firstIndex(where: { $0.id == photoId }) {
                         print("[ImagesListService] Найден индекс: \(index)")
                         var updatedPhotos = self.photos
                         updatedPhotos[index].isLiked = isLike
                         self.photos = updatedPhotos
 
-                        print(
-                            "[ImagesListService] Модель обновлена, отправляем нотификацию"
-                        )
+                        print("[ImagesListService] Модель обновлена, отправляем нотификацию")
                         NotificationCenter.default.post(
                             name: ImagesListService.didChangeNotification,
                             object: self,
@@ -66,20 +65,22 @@ final class ImagesListService {
                     }
                     completion(.success(()))
                 }
-                
+
             case .failure(let error):
                 print("[ImagesListService] Ошибка: \(error)")
-                
+
                 // Обработка HTTP ошибок
                 if case NetworkError.httpStatusCode(let statusCode) = error {
                     let errorMessage = self.mapHTTPStatusCodeToLikeError(statusCode)
                     print("[ImagesListService] HTTP ошибка \(statusCode) -> \(errorMessage)")
-                    DispatchQueue.main.async {
+                    DispatchQueue.main.async { [weak self] in
+                        guard self != nil else { return }
                         completion(.failure(NetworkError.httpStatusCode(statusCode)))
                     }
                 } else {
                     print("[ImagesListService] Сетевая ошибка: \(error.localizedDescription)")
-                    DispatchQueue.main.async {
+                    DispatchQueue.main.async { [weak self] in
+                        guard self != nil else { return }
                         completion(.failure(error))
                     }
                 }
@@ -162,7 +163,9 @@ final class ImagesListService {
             !self.photos.contains(where: { $0.id == newPhoto.id })
         }
 
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
             self.photos.append(contentsOf: unique)
             self.lastLoadedPage = nextPage
             NotificationCenter.default.post(
@@ -172,7 +175,7 @@ final class ImagesListService {
             )
         }
     }
-
+    
     private func convert(from result: PhotoResult) -> Photo {
         let size = CGSize(width: result.width, height: result.height)
         let createdAtDate: Date? = {
